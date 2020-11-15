@@ -1,0 +1,46 @@
+version: "3"
+services:
+  tweet_container:
+    extends: 
+      file: common.yml
+      service: login
+    build: collect_tweets/
+    volumes:
+      - ./collect_tweets/:/app/
+    depends_on:
+      - pg_container
+      - mdb_container
+
+  etl_container:
+    extends: 
+      file: common.yml
+      service: login
+    build: etl/
+    volumes:
+      - ./etl/:/app/
+    depends_on:
+      - pg_container
+      - mdb_container
+
+  pg_container:
+    image: postgres:13.0
+    ports:
+      - 5555:5432
+    env_file:
+      - pw.env
+      
+  mdb_container:
+    image: mongo
+    ports:
+      - 27017:27017
+
+  slackbot_container:
+    extends: 
+      file: common.yml
+      service: login
+    build: slackbot/
+    volumes:
+      - ./slackbot/:/app/
+    depends_on: 
+      - pg_container
+      - etl_container
